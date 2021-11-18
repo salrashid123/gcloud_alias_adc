@@ -240,6 +240,7 @@ For use with federation:
 - [AWS Federation](https://github.com/salrashid123/gcpcompat-aws#test-automatic)
 
 ```bash
+# Federated with impersonation enabled
 cat `pwd`/sts-creds.json
   {
     "type": "external_account",
@@ -257,18 +258,42 @@ cat `pwd`/sts-creds.json
 
 export GOOGLE_APPLICATION_CREDENTIALS=`pwd`/sts-creds.json
 
-$ gcloud config list
+$ gcloud auth list
   [adc]
-  account = 
-  source = 
+  account = https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/aws-federated@your-project-id.iam.gserviceaccount.com:generateAccessToken
+  source = /path/to/sts-creds.json
 
   [core]
-  account = alice@domain.com
-  disable_usage_reporting = False
-  project = your-project-id
+  account = user@domain.com
 ```
 
-The ADC credentials are empty since gcloud cli does not currently support it. It is possible to rearrange the script to check for the type of env-var variable set and display the 'source' as external_account but that's a TODO...
+```bash
+# Federated with without impersonation enabled
+cat `pwd`/sts-creds.json
+  {
+    "type": "external_account",
+    "audience": "//iam.googleapis.com/projects/1071284184436/locations/global/workloadIdentityPools/aws-pool-2/providers/aws-provider-2",
+    "subject_token_type": "urn:ietf:params:aws:token-type:aws4_request",
+    "token_url": "https://sts.googleapis.com/v1/token",
+    "credential_source": {
+      "environment_id": "aws1",
+      "region_url": "http://169.254.169.254/latest/meta-data/placement/availability-zone",
+      "url": "http://169.254.169.254/latest/meta-data/iam/security-credentials",
+      "regional_cred_verification_url": "https://sts.{region}.amazonaws.com?Action=GetCallerIdentity&Version=2011-06-15"
+    },
+  }
 
+export GOOGLE_APPLICATION_CREDENTIALS=`pwd`/sts-creds.json
+
+$ gcloud auth list
+  [adc]
+  account = urn:ietf:params:oauth:token-type:jwt
+  source = /path/to/sts-creds.json
+
+  [core]
+  account = user@domain.com
+```
+
+Note, the `account` value will either show which service account federation will use or if no impersonated credentials are even involved (which is rare)
 
 

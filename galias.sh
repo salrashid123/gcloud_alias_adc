@@ -92,7 +92,12 @@ if (($? == 0)); then
         # gcloud does not yet support  external_account types...once it does, find a better indicator of the identity
         #   than .subject_token_type (whch isn't even an identity)
         if [ "$TYPE" == "external_account" ]; then
-            ADC=$(jq -r '.subject_token_type' < "${GOOGLE_APPLICATION_CREDENTIALS}")
+            SA_IMPERSONATION_URL=$(jq -r '.service_account_impersonation_url // false' < "${GOOGLE_APPLICATION_CREDENTIALS}")
+            if [ "$SA_IMPERSONATION_URL" == "false" ]; then
+              ADC=$(jq -r '.subject_token_type' < "${GOOGLE_APPLICATION_CREDENTIALS}")
+            else
+              ADC=$(jq -r '.service_account_impersonation_url' < "${GOOGLE_APPLICATION_CREDENTIALS}")
+            fi
         fi
         SOURCE="$GOOGLE_APPLICATION_CREDENTIALS"
     fi
